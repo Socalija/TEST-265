@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>M295 – Abschlusstest</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap');
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --paper:   #f5f0e8;
+  --paper2:  #ede8dc;
+  --ink:     #1a1814;
+  --ink2:    #3d3a34;
+  --faint:   #8a8070;
+  --rule:    #c8c0b0;
+  --accent:  #2c4a7c;
+  --accent2: #8b1a1a;
+  --green:   #1a5c2a;
+  --red:     #8b1a1a;
+  --codebg:  #1e1c18;
+  --codefg:  #e8e0d0;
+  --serif:   'Crimson Pro', Georgia, serif;
+  --mono:    'DM Mono', monospace;
+}
+
+body{ background:var(--paper); color:var(--ink); font-family:var(--serif); font-size:16px; line-height:1.6; min-height:100vh; }
+
+/* COVER */
+#coverPage{ min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px 20px; background:var(--paper); border-bottom:3px double var(--rule); }
+.cover-top{ text-align:center; margin-bottom:48px; }
+.school-name{ font-size:11px; font-family:var(--mono); letter-spacing:.2em; text-transform:uppercase; color:var(--faint); margin-bottom:32px; }
+.cover-title{ font-size:52px; font-weight:700; line-height:1.05; letter-spacing:-.02em; color:var(--ink); margin-bottom:8px; }
+.cover-subtitle{ font-size:20px; font-style:italic; color:var(--ink2); margin-bottom:28px; }
+.cover-meta{ display:flex; gap:32px; justify-content:center; font-size:13px; font-family:var(--mono); color:var(--faint); }
+.cover-meta span b{ color:var(--ink2); }
+.cover-divider{ width:200px; height:1px; background:var(--rule); margin:32px auto; }
+.cover-instructions{ max-width:540px; background:var(--paper2); border:1px solid var(--rule); padding:24px 28px; margin-bottom:40px; }
+.cover-instructions h3{ font-size:13px; font-family:var(--mono); letter-spacing:.1em; text-transform:uppercase; color:var(--accent); margin-bottom:12px; }
+.cover-instructions ol{ padding-left:20px; font-size:14px; line-height:1.9; color:var(--ink2); }
+.cover-table{ max-width:560px; width:100%; border-collapse:collapse; font-size:13px; margin-bottom:40px; }
+.cover-table th{ background:var(--accent); color:#fff; padding:8px 14px; text-align:left; font-family:var(--mono); font-weight:500; font-size:11px; letter-spacing:.06em; text-transform:uppercase; }
+.cover-table td{ padding:8px 14px; border-bottom:1px solid var(--rule); color:var(--ink2); }
+.cover-table tr:nth-child(even) td{ background:var(--paper2); }
+.btn-start{ font-family:var(--mono); font-size:13px; letter-spacing:.1em; text-transform:uppercase; padding:14px 48px; background:var(--accent); color:#fff; border:none; cursor:pointer; transition:background .2s; }
+.btn-start:hover{ background:#1e3560; }
+
+/* EXAM HEADER */
+#examPage{ display:none; }
+.exam-header{ background:var(--ink); color:#fff; padding:0 32px; display:flex; align-items:center; justify-content:space-between; height:52px; position:sticky; top:0; z-index:50; }
+.exam-header .eh-title{ font-size:13px; font-family:var(--mono); letter-spacing:.08em; opacity:.7; }
+.exam-header .eh-timer{ font-family:var(--mono); font-size:18px; font-weight:500; color:#fff; }
+.exam-header .eh-timer.warn{ color:#f0a040; }
+.exam-header .eh-timer.crit{ color:#e05050; animation:blink .8s infinite; }
+@keyframes blink{ 50%{opacity:.4} }
+.eh-pts{ font-family:var(--mono); font-size:12px; opacity:.6; }
+.progress-strip{ height:3px; background:#333; }
+.progress-inner{ height:100%; background:var(--accent); width:0; transition:width .3s; }
+
+/* BODY */
+.exam-body{ max-width:820px; margin:0 auto; padding:40px 24px 100px; }
+.section-header{ margin:40px 0 20px; padding-bottom:8px; border-bottom:2px solid var(--ink); display:flex; align-items:baseline; gap:12px; }
+.section-header:first-child{ margin-top:0; }
+.sh-num{ font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--faint); }
+.sh-title{ font-size:22px; font-weight:700; color:var(--ink); }
+.sh-pts{ margin-left:auto; font-family:var(--mono); font-size:12px; color:var(--faint); }
+
+/* QUESTION */
+.question{ margin-bottom:28px; padding:20px 24px; background:#fff; border:1px solid var(--rule); border-left:4px solid var(--rule); transition:border-left-color .2s; }
+.question.answered{ border-left-color:var(--accent); }
+.question.revealed.all-correct{ border-left-color:var(--green); }
+.question.revealed.has-wrong{ border-left-color:var(--red); }
+.q-meta{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.q-id{ font-family:var(--mono); font-size:11px; color:var(--faint); }
+.q-type-badge{ font-family:var(--mono); font-size:10px; padding:1px 7px; border:1px solid var(--rule); color:var(--faint); border-radius:2px; }
+.q-pts-badge{ margin-left:auto; font-family:var(--mono); font-size:11px; color:var(--faint); }
+.q-text{ font-size:16px; line-height:1.65; color:var(--ink); margin-bottom:14px; }
+.q-text strong{ color:var(--accent2); }
+.q-text code, code{ font-family:var(--mono); font-size:13px; background:#eee8d8; padding:1px 5px; border-radius:2px; color:var(--accent); }
+
+pre.codeblock{ background:var(--codebg); color:var(--codefg); font-family:var(--mono); font-size:13px; line-height:1.7; padding:14px 18px; border-radius:3px; margin:12px 0; overflow-x:auto; white-space:pre; }
+pre.codeblock .ln{ display:inline-block; width:20px; color:#555; user-select:none; text-align:right; margin-right:14px; font-size:11px; }
+.kw{color:#c792ea} .fn{color:#82aaff} .st{color:#c3e88d} .cm{color:#546e7a;font-style:italic} .vr{color:#f78c6c} .nm{color:#f8c555} .op{color:#89ddff} .er{color:#ff5370;text-decoration:underline wavy #ff5370}
+
+/* MC */
+.mc-options{ display:flex; flex-direction:column; gap:7px; }
+.mc-opt{ display:flex; align-items:flex-start; gap:10px; padding:10px 14px; border:1px solid var(--rule); background:var(--paper); cursor:pointer; transition:all .15s; user-select:none; }
+.mc-opt:hover:not(.locked){ border-color:var(--accent); background:#eef2fa; }
+.mc-opt.chosen{ border-color:var(--accent); background:#e8eef8; }
+.mc-opt.locked{ cursor:default; }
+.mc-opt.show-correct{ border-color:var(--green); background:#e8f5ec; }
+.mc-opt.show-wrong{ border-color:var(--red); background:#f5e8e8; }
+.mc-letter{ font-family:var(--mono); font-size:11px; font-weight:500; width:22px; height:22px; border:1px solid var(--rule); border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; color:var(--faint); transition:all .15s; }
+.mc-opt.chosen .mc-letter{ background:var(--accent); color:#fff; border-color:var(--accent); }
+.mc-opt.show-correct .mc-letter{ background:var(--green); color:#fff; border-color:var(--green); }
+.mc-opt.show-wrong .mc-letter{ background:var(--red); color:#fff; border-color:var(--red); }
+.mc-text{ font-size:15px; line-height:1.5; color:var(--ink2); }
+
+/* FILL */
+.code-gap input{ font-family:var(--mono); font-size:13px; background:#2a2820; border:none; border-bottom:2px solid #e8c547; color:#e8c547; padding:0 6px; outline:none; text-align:center; }
+.code-gap input.correct-fill{ border-color:#4caf7d; color:#4caf7d; }
+.code-gap input.wrong-fill{ border-color:#e05555; color:#e05555; }
+.code-gap input:disabled{ background:transparent; }
+
+/* ORDER */
+.order-list{ display:flex; flex-direction:column; gap:5px; margin-top:8px; }
+.order-item{ display:flex; align-items:center; gap:10px; padding:8px 12px; background:var(--paper); border:1px solid var(--rule); cursor:grab; user-select:none; transition:background .15s; }
+.order-item:active{ cursor:grabbing; }
+.order-item.dragging{ opacity:.4; }
+.order-item.dragover{ border-color:var(--accent); background:#eef2fa; }
+.order-handle{ font-size:14px; color:var(--faint); flex-shrink:0; }
+.order-num{ font-family:var(--mono); font-size:11px; color:var(--faint); width:20px; flex-shrink:0; }
+.order-text{ font-family:var(--mono); font-size:13px; color:var(--ink2); }
+.order-item.order-correct{ border-color:var(--green); background:#e8f5ec; }
+.order-item.order-wrong{ border-color:var(--red); background:#f5e8e8; }
+
+/* FEEDBACK */
+.q-feedback{ margin-top:12px; padding:10px 14px; border-left:3px solid; font-size:14px; line-height:1.6; display:none; }
+.q-feedback.show{ display:block; }
+.q-feedback.fb-ok{ background:#e8f5ec; border-color:var(--green); color:#0d3d1a; }
+.q-feedback.fb-err{ background:#f5e8e8; border-color:var(--red); color:#4a0d0d; }
+
+/* SUBMIT BAR */
+.submit-bar{ position:fixed; bottom:0; left:0; right:0; background:var(--ink); padding:14px 32px; display:flex; align-items:center; justify-content:space-between; z-index:40; }
+.sb-progress{ font-family:var(--mono); font-size:12px; color:#aaa; }
+.sb-progress span{ color:#fff; font-weight:500; }
+.btn-submit{ font-family:var(--mono); font-size:12px; letter-spacing:.08em; text-transform:uppercase; padding:10px 32px; background:var(--accent); color:#fff; border:none; cursor:pointer; transition:background .2s; }
+.btn-submit:hover{ background:#1e3560; }
+.btn-submit:disabled{ background:#444; cursor:default; }
+
+/* RESULT */
+#resultPage{ display:none; }
+.result-cover{ min-height:100vh; background:var(--paper); display:flex; flex-direction:column; align-items:center; padding:60px 24px; }
+.result-stamp{ width:140px; height:140px; border-radius:50%; border:6px double; display:flex; flex-direction:column; align-items:center; justify-content:center; margin-bottom:24px; transform:rotate(-8deg); }
+.result-stamp.pass{ border-color:var(--green); }
+.result-stamp.fail{ border-color:var(--red); }
+.stamp-grade{ font-size:52px; font-weight:700; line-height:1; }
+.stamp-grade.pass{ color:var(--green); }
+.stamp-grade.fail{ color:var(--red); }
+.stamp-label{ font-family:var(--mono); font-size:10px; letter-spacing:.15em; text-transform:uppercase; }
+.stamp-label.pass{ color:var(--green); }
+.stamp-label.fail{ color:var(--red); }
+.result-h1{ font-size:32px; font-weight:700; margin-bottom:6px; }
+.result-sub{ font-size:16px; font-style:italic; color:var(--ink2); margin-bottom:40px; }
+.result-table{ width:100%; max-width:640px; border-collapse:collapse; font-size:14px; margin-bottom:40px; }
+.result-table th{ background:var(--ink); color:#fff; padding:8px 16px; text-align:left; font-family:var(--mono); font-size:11px; letter-spacing:.06em; text-transform:uppercase; }
+.result-table td{ padding:9px 16px; border-bottom:1px solid var(--rule); }
+.result-table tr:nth-child(even) td{ background:var(--paper2); }
+.res-ok{ color:var(--green); font-family:var(--mono); font-weight:500; }
+.res-err{ color:var(--red); font-family:var(--mono); font-weight:500; }
+.res-part{ color:#c87000; font-family:var(--mono); font-weight:500; }
+.grade-formula{ font-family:var(--mono); font-size:13px; color:var(--faint); margin-bottom:32px; text-align:center; }
+.btn-retry2{ font-family:var(--mono); font-size:12px; letter-spacing:.08em; text-transform:uppercase; padding:12px 36px; background:var(--ink); color:#fff; border:none; cursor:pointer; }
+.btn-retry2:hover{ background:var(--accent); }
+</style>
+</head>
+<body>
+
+<!-- ══════════ COVER ══════════ -->
+<div id="coverPage">
+  <div class="cover-top">
+    <div class="school-name">ICT-Berufsbildung Schweiz · Modul 295</div>
+    <div class="cover-title">Abschlusstest</div>
+    <div class="cover-subtitle">Backend für Applikationen realisieren</div>
+    <div class="cover-meta">
+      <span><b>Datum:</b> 05.05.2026</span>
+      <span><b>Zeit:</b> 60 Minuten</span>
+      <span><b>Punkte:</b> 50</span>
+      <span><b>Hilfsmittel:</b> Keines</span>
+    </div>
+  </div>
+  <div class="cover-divider"></div>
+  <div class="cover-instructions">
+    <h3>Anweisungen</h3>
+    <ol>
+      <li>Lies jede Frage sorgfältig durch, bevor du antwortest.</li>
+      <li>Bei Multiple-Choice ist genau <strong>eine</strong> Antwort korrekt.</li>
+      <li>Bei Lückentexten: exakter PHP-Name (Gross-/Kleinschreibung beachten, ohne Klammern).</li>
+      <li>Bei Reihenfolge-Aufgaben: Zeilen per Drag &amp; Drop sortieren.</li>
+      <li>Alle Aufgaben beziehen sich auf das Buchantiquariat «Pagina».</li>
+      <li>Notenformel: <strong>(Punkte / 50) × 5 + 1</strong> · Bestanden ab Note 4.0.</li>
+    </ol>
+  </div>
+  <table class="cover-table">
+    <thead><tr><th>Abschnitt</th><th>Thema / Lernziel</th><th>Punkte</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Kommentare &amp; Grundstruktur</td><td>4</td></tr>
+      <tr><td>B</td><td>Formulare: GET, POST, ACTION, PHP_SELF</td><td>6</td></tr>
+      <tr><td>C</td><td>Sessions &amp; Authentifizierung</td><td>10</td></tr>
+      <tr><td>D</td><td>Passwort-Sicherheit</td><td>6</td></tr>
+      <tr><td>E</td><td>MySQLi &amp; Prepared Statements</td><td>12</td></tr>
+      <tr><td>F</td><td>Formularvalidierung &amp; Sicherheit</td><td>6</td></tr>
+      <tr><td>G</td><td>PHP-Funktionen</td><td>6</td></tr>
+      <tr><td colspan="2"><strong>Total</strong></td><td><strong>50</strong></td></tr>
+    </tbody>
+  </table>
+  <button class="btn-start" onclick="startExam()">▶ Abschlusstest starten</button>
+</div>
+
+<!-- ══════════ EXAM ══════════ -->
+<div id="examPage">
+  <div class="exam-header">
+    <div class="eh-title">M295 · Abschlusstest</div>
+    <div class="eh-timer" id="timerDisplay">60:00</div>
+    <div class="eh-pts" id="ehPts">0 / 50 Pkt.</div>
+  </div>
+  <div class="progress-strip"><div class="progress-inner" id="progressInner"></div></div>
+
+  <div class="exam-body">
+
+    <!-- ══ A: KOMMENTARE & GRUNDSTRUKTUR ══ -->
+    <div class="section-header">
+      <span class="sh-num">Abschnitt A</span>
+      <span class="sh-title">Kommentare &amp; PHP-Grundstruktur</span>
+      <span class="sh-pts">4 Punkte</span>
+    </div>
+
+    <!-- A1 MC 1pt -->
+    <div class="question" id="q_A1">
+      <div class="q-meta"><span class="q-id">A1</span><span class="q-type-badge">Multiple Choice</span><span class="q-pts-badge">1 Punkt</span></div>
+      <p class="q-text">Welche der folgenden Kommentar-Syntaxen ist in PHP <strong>nicht gültig</strong>?</p>
+      <div class="mc-options" data-correct="c" data-q="A1" data-pts="1">
+        <div class="mc-opt" data-val="a"><span class="mc-letter">A</span><span class="mc-text"><code>// Einzeiliger Kommentar</code></span></div>
+        <div class="mc-opt" data-val="b"><span class="mc-letter">B</span><span class="mc-text"><code># Einzeiliger Kommentar</code></span></div>
+        <div class="mc-opt" data-val="c"><span class="mc-letter">C</span><span class="mc-text"><code><!-- Kommentar --></code></span></div>
+        <div class="mc-opt" data-val="d"><span class="mc-letter">D</span><span class="mc-text"><code>/* Mehrzeiliger Kommentar */</code></span></div>
+      </div>
+      <div class="q-feedback fb-ok">✓ Richtig. <code>&lt;!-- --&gt;</code> ist HTML-Kommentar-Syntax, kein PHP. In PHP: <code>//</code> und <code>#</code> für einzeilig, <code>/* */</code> für mehrzeilig.</div>
+      <div class="q-feedback fb-err">✗ Falsch. <code>&lt;!-- --&gt;</code> ist HTML, nicht PHP. PHP kennt: <code>//</code> (einzeilig), <code>#</code> (einzeilig) und <code>/* */</code> (mehrzeilig/Block).</div>
+    </div>
+
+    <!-- A2 FILL 2pt -->
+    <div class="question" id="q_A2">
+      <div class="q-meta"><span class="q-id">A2</span><span class="q-type-badge">Lückentext</span><span class="q-pts-badge">2 Punkte</span></div>
+      <p class="q-text">Ergänze den PHP-Code mit den korrekten Kommentar-Zeichen und dem richtigen PHP-Tag zum Schliessen.</p>
+      <pre class="codeblock code-gap"><span class="ln">1</span><span class="cm">&lt;?php</span>
+<span class="ln">2</span><input type="text" id="A2a" placeholder="???" data-answer="//" style="width:60px"> Dies ist ein einzeiliger Kommentar
+<span class="ln">3</span><input type="text" id="A2b" placeholder="???" data-answer="?>" style="width:60px"> <span class="cm">// PHP-Tag schliessen</span></pre>
+      <div class="q-feedback fb-ok">✓ Richtig. <code>//</code> für einzeiligen Kommentar, <code>?&gt;</code> schliesst den PHP-Block.</div>
+      <div class="q-feedback fb-err">✗ Falsch. Zeile 2: <code>//</code> (oder <code>#</code>) für einzeiligen Kommentar. Zeile 3: <code>?&gt;</code> schliesst den PHP-Block. Achtung: Vor <code>session_start()</code> und <code>header()</code> besser kein schliessender PHP-Tag (vermeidet versehentliche Ausgabe).</div>
+    </div>
+
+    <!-- A3 MC 1pt -->
+    <div class="question" id="q_A3">
+      <div class="q-meta"><span class="q-id">A3</span><span class="q-type-badge">Multiple Choice</span><span class="q-pts-badge">1 Punkt</span></div>
+      <p class="q-text">Warum sollte am Ende einer PHP-Datei, die Sessions oder Header verwendet, der schliessende <code>?&gt;</code>-Tag <strong>weggelassen</strong> werden?</p>
+      <div class="mc-options" data-correct="b" data-q="A3" data-pts="1">
+        <div class="mc-opt" data-val="a"><span class="mc-letter">A</span><span class="mc-text">Weil PHP sonst die Datei als HTML interpretiert</span></div>
+        <div class="mc-opt" data-val="b"><span class="mc-letter">B</span><span class="mc-text">Weil nach <code>?&gt;</code> ein Zeilenumbruch als Ausgabe gesendet wird, was «Headers already sent» verursacht</span></div>
+        <div class="mc-opt" data-val="c"><span class="mc-letter">C</span><span class="mc-text">Weil <code>?&gt;</code> in modernem PHP veraltet ist</span></div>
+        <div class="mc-opt" data-val="d"><span class="mc-letter">D</span><span class="mc-text">Es gibt keinen Grund, <code>?&gt;</code> wegzulassen</span></div>
+      </div>
+      <div class="q-feedback fb-ok">✓ Richtig. Nach <code>?&gt;</code> folgt oft ein unsichtbarer Zeilenumbruch. Dieser wird als HTTP-Ausgabe gesendet, bevor <code>session_start()</code> oder <code>header()</code> aufgerufen wird — Fehler!</div>
+      <div class="q-feedback fb-err">✗ Falsch. Richtig ist B. Der schliessende PHP-Tag gefolgt von einem Zeilenumbruch sendet diesen als Ausgabe zum Browser. Das verhindert dann den Aufruf von <code>session_start()</code> und <code>header()</code>.</div>
+    </div>
+
+    <!-- ══ B: FORMULARE ══ -->
+    <div class="section-header">
+      <span class="sh-num">Abschnitt B</span>
+      <span class="sh-title">Formulare: GET, POST, ACTION, PHP_SELF</span>
+      <span class="sh-pts">6 Punkte</span>
+    </div>
+
+    <!-- B1 MC 2pt -->
+    <div class="question" id="q_B1">
+      <div class="q-meta"><span class="q-id">B1</span><span class="q-type-badge">Multiple Choice</span><span class="q-pts-badge">2 Punkte</span></div>
+      <p class="q-text">Das Buchantiquariat hat zwei Formulare: ein <strong>Suchformular</strong> (Bücher nach Autor suchen) und ein <strong>Login-Formular</strong>. Welche Methoden-Kombinaton ist korrekt?</p>
+      <div class="mc-options" data-correct="b" data-q="B1" data-pts="2">
+        <div class="mc-opt" data-val="a"><span class="mc-letter">A</span><span class="mc-text">Suche: <code>POST</code> · Login: <code>GET</code></span></div>
+        <div class="mc-opt" data-val="b"><span class="mc-letter">B</span><span class="mc-text">Suche: <code>GET</code> · Login: <code>POST</code></span></div>
+        <div class="mc-opt" data-val="c"><span class="mc-letter">C</span><span class="mc-text">Beide: <code>POST</code></span></div>
+        <div class="mc-opt" data-val="d"><span class="mc-letter">D</span><span class="mc-text">Beide: <code>GET</code></span></div>
+      </div>
+      <div class="q-feedback fb-ok">✓ Richtig. GET für Suche: URL ist teilbar, bookmarkbar, kein Sicherheitsproblem. POST für Login: Passwort darf nie in der URL erscheinen (Browser-Verlauf, Server-Logs).</div>
+      <div class="q-feedback fb-err">✗ Falsch. Richtig ist B. GET-Daten erscheinen in der URL — für Suchen ok, für Passwörter verboten. POST sendet Daten im HTTP-Body, unsichtbar in der URL. Passwörter immer POST!</div>
+    </div>
+
+    <!-- B2 FILL 2pt -->
+    <div class="question" id="q_B2">
+      <div class="q-meta"><span class="q-id">B2</span><span class="q-type-badge">Lückentext</span><span class="q-pts-badge">2 Punkte</span></div>
+      <p class="q-text">Das Buch-Einfüge-Formular soll an sich selbst senden. Ergänze das <code>action</code>-Attribut sicher. Schreibe nur den Funktionsnamen ohne Klammern.</p>
+      <pre class="codeblock code-gap"><span class="kw">&lt;form</span> method=<span class="st">"post"</span>
+  action=<span class="st">"&lt;?php echo </span><input type="text" id="B2a" placeholder="???" data-answer="htmlspecialchars" style="width:180px"><span class="st">(</span>
+    <span class="st">$_SERVER['</span><input type="text" id="B2b" placeholder="???" data-answer="PHP_SELF" style="width:110px"><span class="st">']); ?&gt;"</span><span class="kw">&gt;</span></pre>
+      <div class="q-feedback fb-ok">✓ Richtig. <code>htmlspecialchars()</code> schützt vor XSS. <code>PHP_SELF</code> enthält den Pfad der aktuellen Datei. Zusammen: sicheres Self-Submit-Formular.</div>
+      <div class="q-feedback fb-err">✗ Falsch. Lücke 1: <code>htmlspecialchars</code> (XSS-Schutz). Lücke 2: <code>PHP_SELF</code> (Schlüssel im $_SERVER-Array). Ohne htmlspecialchars() könnte ein Angreifer JavaScript via URL einschleusen.</div>
+    </div>
+
+    <!-- B3 MC 2pt -->
+    <div class="question" id="q_B3">
+      <div class="q-meta"><span class="q-id">B3</span><span class="q-type-badge">Multiple Choice</span><span class="q-pts-badge">2 Punkte</span></div>
+      <p class="q-text">Was ist der <strong>Unterschied</strong> zwischen <code>$_GET</code> und <code>$_POST</code> bei der Datenübertragung?</p>
+      <div class="mc-options" data-correct="c" data-q="B3" data-pts="2">
+        <div class="mc-opt" data-val="a"><span class="mc-letter">A</span><span class="mc-text">GET ist schneller, POST ist langsamer</span></div>
+        <div class="mc-opt" data-val="b"><span class="mc-letter">B</span><span class="mc-text">GET ist für grosse Datenmengen, POST für kleine</span></div>
+        <div class="mc-opt" data-val="c"><span class="mc-letter">C</span><span class="mc-text">GET sendet Daten in der URL (sichtbar, in Logs gespeichert). POST sendet Daten im HTTP-Body (nicht in der URL sichtbar)</span></div>
+        <div class="mc-opt" data-val="d"><span class="mc-letter">D</span><span class="mc-text">Es gibt keinen sicherheitsrelevanten Unterschied</span></div>
+      </div>
+      <div class="q-feedback fb-ok">✓ Richtig. GET-Daten: <code>?name=Max&amp;suche=Tolkien</code> in der URL. Sichtbar im Browser-Verlauf, in Server-Logs, in Referrer-Headern. POST-Daten im HTTP-Body — nicht in der URL, aber auch nicht «verschlüsselt» (nur HTTPS schützt wirklich).</div>
+      <div class="q-feedback fb-err">✗ Falsch. Richtig ist C. Der Hauptunterschied ist der Ort der Datenübertragung: GET in der URL, POST im HTTP-Body. Für Passwörter und sensible Daten immer POST + HTTPS.</div>
+    </div>
+
+    <!-- ══ C: SESSIONS ══ -->
+    <div class="section-header">
+      <span class="sh-num">Abschnitt C</span>
+      <span class="sh-title">Sessions &amp; Authentifizierung</span>
+      <span class="sh-pts">10 Punkte</span>
+    </div>
+
+    <!-- C1 ORDER 3pt -->
+    <div class="question" id="q_C1">
+      <div class="q-meta"><span class="q-id">C1</span><span class="q-type-badge">Reihenfolge</span><span class="q-pts-badge">3 Punkte</span></div>
+      <p class="q-text">Bringe die Schritte eines <strong>vollständigen, sicheren Logins</strong> in die richtige Reihenfolge.</p>
+      <div class="order-list" id="orderC1" data-q="C1" data-pts="3"
+        data-correct='["session_start();","$row = $stmt->get_result()->fetch_assoc();","if (password_verify($pw, $row[\"password\"])) {","session_regenerate_id();","$_SESSION[\"loggedin\"] = true;","header(\"Location: admin.php\"); exit;"]'>
+        <div class="order-item" draggable="true"><span class="order-handle">⠿</span><span class="order-num"></span><span class="order-text">$_SESSION["loggedin"] = true;</span></div>
+        <div class="order-item" draggable="true"><span class="order-handle">⠿</span><span class="order-num"></span><span class="order-text">session_start();</span></div>
+        <div class="order-item" draggable="true"><span class="order-handle">⠿</span><span class="order-num"></span><span class="order-text">session_regenerate_id();</span></div>
+        <div class="order-item" draggable="true"><span class="order-handle">⠿</span><span class="order-num"></span><span class="order-text">header("Location: admin.php"); exit;</span></div>
+        <div class="order-item" draggable="true"><span class="order-handle">⠿</span><span class="order-num"></span><span class="order-text">if (password_verify($pw, $row["password"])) {</span></div>
+        <div class="order-item" draggable="true"><span class="order-handle">⠿</span><span class="order-num"></span><span class="order-text">$row = $stmt->get_result()->fetch_assoc();</span></div>
+      </div>
+      <div class="q-feedback fb-ok">✓ Richtig. Ablauf: session_start → DB-Abfrage → password_verify → session_regenerate_id → Session setzen → Weiterleitung mit exit.</div>
+      <div class="q-feedback fb-err">✗ Falsch. Korrekte Reihenfolge: 1. session_start() · 2. DB-User holen (fetch_assoc) · 3. password_verify() prüfen · 4. session_regenerate_id() · 5. $_SESSION setzen · 6. header() + exit.</div>
+    </div>
+
+    <!-- C2 MC 2pt -->
+    <div class="question" id="q_C2">
+      <div class="q-meta"><span class="q-id">C2</span><span class="q-type-badge">Multiple Choice</span><span class="q-pts-badge">2 Punkte</span></div>
+      <p class="q-text">Was ist <strong>Session Hijacking</strong> und wie wird es verhindert?</p>
+      <div class="mc-options" data-correct="a" data-q="C2" data-pts="2">
+        <div class="mc-opt" data-val="a"><span class="mc-letter">A</span><span class="mc-text">Angreifer stiehlt die Session-ID eines eingeloggten Benutzers und gibt sich als dieser aus. Schutz: HTTPS + <code>session_regenerate_id()</code> + HttpOnly-Cookies</span></div>
+        <div class="mc-opt" data-val="b"><span class="mc-letter">B</span><span class="mc-text">Angreifer errät das Passwort durch Brute-Force. Schutz: starke Passwörter</span></div>
+        <div class="mc-opt" data-val="c"><span class="mc-letter">C</span><span class="mc-text">Angreifer injiziert SQL-Code in die Datenbank. Schutz: Prepared Statements</span></div>
+        <div class="mc-opt" data-val="d"><span class="mc-letter">D</span><span class="mc-text">Angreifer löscht die Session-Datei auf dem Server. Schutz: Backups</span></div>
+      </div>
+      <div class="q-feedback fb-ok">✓ Richtig. Session Hijacking = Diebstahl der Session-ID (z.B. via XSS, unsicheres WLAN). Mit der gestohlenen ID kann der Angreifer die Session des Opfers übernehmen. HTTPS verschlüsselt die Übertragung, session_regenerate_id() erzeugt nach Login eine neue ID.</div>
+      <div class="q-feedback fb-err">✗ Falsch. Richtig ist A. Session Hijacking ist der Diebstahl der Session-ID, nicht ein Passwort-Angriff oder SQL-Injection. Schutz: HTTPS (verschlüsselt ID-Übertragung) + session_regenerate_id() + HttpOnly-Flag auf dem Session-Cookie.</div>
+    </div>
+
+    <!-- C3 FILL 3pt -->
+    <div class="question" id="q_C3">
+      <div class="q-meta"><span class="q-id">C3</span><span class="q-type-badge">Lückentext</span><span class="q-pts-badge">3 Punkte</span></div>
+      <p class="q-text">Ergänze den vollständigen Logout-Code. Alle drei Lücken müssen korrekt sein.</p>
+      <pre class="codeblock code-gap"><span class="ln">1</span><span class="cm">&lt;?php</span>
+<span class="ln">2</span><input type="text" id="C3a" placeholder="???" data-answer="session_start" style="width:150px">();
+<span class="ln">3</span><span class="vr">$_SESSION</span> = <input type="text" id="C3b" placeholder="???" data-answer="[]" style="width:60px">;
+<span class="ln">4</span><input type="text" id="C3c" placeholder="???" data-answer="session_destroy" style="width:160px">();
+<span class="ln">5</span><span class="fn">header</span>(<span class="st">'Location: login.php'</span>); <span class="kw">exit</span>;</pre>
+      <div class="q-feedback fb-ok">✓ Richtig. session_start() auch beim Logout nötig (Session muss offen sein). $_SESSION = [] leert das Array. session_destroy() löscht die Datei auf dem Server.</div>
+      <div class="q-feedback fb-err">✗ Falsch. Lücke 1: <code>session_start</code> · Lücke 2: <code>[]</code> (leeres Array, PHP 7+; alternativ array()) · Lücke 3: <code>session_destroy</code>. Alle drei Schritte sind nötig für einen sauberen Logout.</div>
+    </div>
+
+    <!-- C4 MC 2pt -->
+    <div class="question" id="q_C4">
+      <div class="q-meta"><span class="q-id">C4</span><span class="q-type-badge">Multiple Choice</span><span class="q-pts-badge">2 Punkte</span></div>
+      <p class="q-text">Wo werden Session-Daten auf einem XAMPP-System (Windows) standardmässig gespeichert?</p>
+      <div class="mc-options" data-correct="b" data-q="C4" data-pts="2">
+        <div class="mc-opt" data-val="a"><span class="mc-letter">A</span><span class="mc-text">Im Browser des Benutzers als Cookie</span></div>
+        <div class="mc-opt" data-val="b"><span class="mc-letter">B</span><span class="mc-text">Auf dem Server unter <code>C:/XAMPP/tmp</code> als Datei</span></div>
+        <div class="mc-opt" data-val="c"><span class="mc-letter">C</span><span class="mc-text">In der MySQL-Datenbank in einer sessions-Tabelle</span></div>
+        <div class="mc-opt" data-val="d"><span class="mc-letter">D</span><span class="mc-text">Im PHP-Speicher, geht beim Beenden verloren</span></div>
+      </div>
+      <div class="q-feedback fb-ok">✓ Richtig. Session-Daten liegen als Dateien (z.B. sess_abc123) im tmp-Verzeichnis des Servers. Nur die Session-ID wird als Cookie beim Browser gespeichert — nicht die eigentlichen Daten.</div>
+      <div class="q-feedback fb-err">✗ Falsch. Richtig ist B. Der Browser erhält nur die Session-ID als Cookie. Die eigentlichen Session-Daten (z.B. Username, loggedin=true) liegen als Datei auf dem Server in C:/XAMPP/tmp.</div>
+    </div>
+
+    <!-- ══ D: PASSWORT ══ -->
+    <div class="section-header">
+      <span class="sh-num">Abschnitt D</span>
+      <span class="sh-title">Passwort-Sicherheit</span>
+      <span class="sh-pts">6 Punkte</span>
+    </div>
+
+    <!-- D1 MC 2pt -->
+    <div class="question" id="q_D1">
+      <div class="q-meta"><span class="q-id">D1</span><span class="q-type-badge">Multiple Choice</span><span class="q-pts-badge">2 Punkte</span></div>
+      <p class="q-text">Ein neuer Administrator wird im System registriert. Der folgende Code speichert das Passwort. Was ist <strong>falsch</strong>?</p>
+      <pre class="codeblock"><span class="ln">1</span><span class="vr">$pw</span> = <span class="vr">$_POST</span>[<span class="st">'password'</span>];
+<span class="ln">2</span><span class="er">$hash = md5($pw);</span>
+<span class="ln">3</span><span class="cm">// $hash in DB speichern</span></pre>
+      <div class="mc-options" data-correct="c" data-q="D1" data-pts="2">
+        <div class="mc-opt" data-val="a"><span class="mc-letter">A</span><span class="mc-text"><code>md5()</code> ist korrekt, man muss nur einen Salt hinzufügen</span></div>
+        <div class="mc-opt" data-val="b"><span class="mc-letter">B</span><span class="mc-text">Das Passwort sollte mit <code>base64_encode()</code> gespeichert werden</span></div>
+        <div class="mc-opt" data-val="c"><span class="mc-letter">C</span><span class="mc-text"><code>md5()</code> ist für Passwörter viel zu schnell und unsicher. Korrekt: <code>password_hash($pw, PASSWORD_DEFAULT)</code></span></div>
+        <div class="mc-opt" data-val="d"><span class="mc-letter">D</span><span class="mc-text">Es fehlt nur <code>htmlspecialchars()</code> vor dem Hashen</span></div>
+      </div>
+      <div class="q-feedback fb-ok">✓ Richtig. MD5 kann Milliarden Hashes pro Sekunde berechnen — mit Rainbow-Tables ist ein MD5-Hash in Sekunden geknackt. password_hash() verwendet bcrypt, das absichtlich langsam ist und automatisch einen zufälligen Salt hinzufügt.</div>
+      <div class="q-feedback fb-err">✗ Falsch. Richtig ist C. MD5 ist kryptografisch gebrochen und für Passwörter komplett ungeeignet — auch mit Salt. base64 ist nur Kodierung, kein Schutz. Nur password_hash($pw, PASSWORD_DEFAULT) verwenden!</div>
+    </div>
+
+    <!-- D2 FILL 2pt -->
+    <div class="question" id="q_D2">
+      <div class="q-meta"><span class="q-id">D2</span><span class="q-type-badge">Lückentext</span><span class="q-pts-badge">2 Punkte</span></div>
+      <p class="q-text">Ergänze den Login-Check: Das eingegebene Passwort wird mit dem Hash aus der Datenbank verglichen.</p>
+      <pre class="codeblock code-gap"><span class="ln">1</span><span class="vr">$eingabe</span> = <span class="vr">$_POST</span>[<span class="st">'password'</span>];
+<span class="ln">2</span><span class="vr">$hash_db</span> = <span class="vr">$row</span>[<span class="st">'password'</span>];
+<span class="ln">3</span><span class="kw">if</span> (<input type="text" id="D2a" placeholder="???" data-answer="password_verify" style="width:180px">(<span class="vr">$eingabe</span>, <span class="vr">$hash_db</span>)) {
+<span class="ln">4</span>    <span class="fn">session_regenerate_id</span>();
+<span class="ln">5</span>    <span class="vr">$_SESSION</span>[<span class="st">'loggedin'</span>] = <input type="text" id="D2b" placeholder="???" data-answer="true" style="width:70px">;
+<span class="ln">6</span>}</pre>
+      <div class="q-feedback fb-ok">✓ Richtig. password_verify() vergleicht die Eingabe mit dem gespeicherten bcrypt-Hash (inkl. Salt-Extraktion). true setzt die Session-Variable auf den booleschen Wert true.</div>
+      <div class="q-feedback fb-err">✗ Falsch. Lücke 1: <code>password_verify</code> (vergleicht Eingabe mit Hash). Lücke 2: <code>true</code> (boolescher Wert, nicht der String "true"). Wichtig: nie den Hash neu berechnen und vergleichen — password_verify() macht das korrekt!</div>
+    </div>
+
+    <!-- D3 MC 2pt -->
+    <div class="question" id="q_D3">
+      <div class="q-meta"><span class="q-id">D3</span><span class="q-type-badge">Multiple Choice</span><span class="q-pts-badge">2 Punkte</span></div>
+      <p class="q-text">Was bedeuten die Teile des bcrypt-Hashes <code>$2y$10$abc...xyz</code>?</p>
+      <div class="mc-options" data-correct="d" data-q="D3" data-pts="2">
+        <div class="mc-opt" data-val="a"><span class="mc-letter">A</span><span class="mc-text"><code>$2y$</code> = Version 2, <code>$10$</code> = Passwort-Länge, Rest = Hash</span></div>
+        <div class="mc-opt" data-val="b"><span class="mc-letter">B</span><span class="mc-text"><code>$2y$</code> = PHP-Version, <code>$10$</code> = Anzahl Iterationen insgesamt, Rest = verschlüsseltes Passwort</span></div>
+        <div class="mc-opt" data-val="c"><span class="mc-letter">C</span><span class="mc-text"><code>$2y$</code> = Algorithmus bcrypt, <code>$10$</code> = Salt-Länge, Rest = nur Hash</span></div>
+        <div class="mc-opt" data-val="d"><span class="mc-letter">D</span><span class="mc-text"><code>$2y$</code> = Algorithmus bcrypt, <code>$10$</code> = Cost-Faktor (Rechenaufwand), dann 22 Zeichen Salt + 31 Zeichen Hash</span></div>
+      </div>
+      <div class="q-feedback fb-ok">✓ Richtig. Aufbau: $2y$ (bcrypt-Algorithmus) + $10$ (Cost-Faktor, Standard 10–12) + 22 Zeichen zufälliger Salt + 31 Zeichen eigentlicher Hash. Alles zusammen in einem String — password_verify() weiss wie es zu lesen ist.</div>
+      <div class="q-feedback fb-err">✗ Falsch. Richtig ist D. $2y$ = bcrypt-Algorithmus-Kennung. $10$ = Cost-Faktor (bestimmt Rechenaufwand, höher = sicherer/langsamer). Danach folgen 22 Zeichen Salt (zufällig) + 31 Zeichen Hash.</div>
+    </div>
+
+    <!-- ══ E: MYSQLI ══ -->
+    <div class="section-header">
+      <span class="sh-num">Abschnitt E</span>
+      <span class="sh-title">MySQLi &amp; Prepared Statements</span>
+      <span class="sh-pts">12 Punkte</span>
+    </div>
+
+    <!-- E1 MC 2pt -->
+    <div class="question" id="q_E1">
+      <div class="q-meta"><span class="q-id">E1</span><span class="q-type-badge">Multiple Choice</span><span class="q-pts-badge">2 Punkte</span></div>
+      <p class="q-text">Warum verhindern Prepared Statements SQL-Injection, der folgende direkte Code jedoch nicht?</p>
+      <pre class="codeblock"><span class="cm">// Direkt (UNSICHER):</span>
+<span class="er">$sql = "SELECT * FROM buecher WHERE autor = '$autor'";</span>
+<span class="cm">// Prepared (SICHER):</span>
+<span class="vr">$stmt</span> = <span class="vr">$db</span>-><span class="fn">prepare</span>(<span class="st">"SELECT * FROM buecher WHERE autor = ?"</span>);
+<span class="vr">$stmt</span>-><span class="fn">bind_param</span>(<span class="st">"s"</span>, <span class="vr">$autor</span>);</pre>
+      <div class="mc-options" data-correct="c" data-q="E1" data-pts="2">
+        <div class="mc-opt" data-val="a"><span class="mc-letter">A</span><span class="mc-text">Prepared Statements sind schneller, weshalb weniger Zeit für Angriffe bleibt</span></div>
+        <div class="mc-opt" data-val="b"><span class="mc-letter">B</span><span class="mc-text">Bei Prepared Statements wird der Benutzerwert automatisch in Grossbuchstaben umgewandelt</span></div>
+        <div class="mc-opt" data-val="c"><span class="mc-letter">C</span><span class="mc-text">SQL-Struktur und Benutzerdaten werden getrennt zum Server gesendet. Der Benutzerwert wird nie als SQL-Code interpretiert</span></div>
+        <div class="mc-opt" data-val="d"><span class="mc-letter">D</span><span class="mc-text">Prepared Statements verschlüsseln die Abfrage vor dem Senden</span></div>
+      </div>
+      <div class="q-feedback fb-ok">✓ Richtig. Das ist der Kern: Bei prepare() wird der SQL-String mit Platzhaltern (?) an den Server gesendet und dort kompiliert. Danach werden die Werte separat übertragen — sie können nie als SQL-Befehle ausgeführt werden.</div>
+      <div class="q-feedback fb-err">✗ Falsch. Richtig ist C. Der entscheidende Unterschied: SQL-Befehl und Daten werden getrennt übertragen. Die Datenbank behandelt bind_param-Werte immer als reinen Text/Daten, nie als SQL-Syntax.</div>
+    </div>
+
+    <!-- E2 ORDER 3pt -->
+    <div class="question" id="q_E2">
+      <div class="q-meta"><span class="q-id">E2</span><span class="q-type-badge">Reihenfolge</span><span class="q-pts-badge">3 Punkte</span></div>
+      <p class="q-text">Bringe die Schritte zum <strong>Einfügen eines neuen Buches</strong> mit Prepared Statement in die richtige Reihenfolge.</p>
+      <div class="order-list" id="orderE2" data-q="E2" data-pts="3"
+        data-correct='["$db = new mysqli(\"localhost\",\"root\",\"pw\",\"antiquariat\");","$sql = \"INSERT INTO buecher (titel, autor, preis) VALUES (?, ?, ?)\";","$stmt = $db->prepare($sql);","$stmt->bind_param(\"ssd\", $titel, $autor, $preis);","$stmt->execute();","echo \"Neue ID: \" . $stmt->insert_id;"]'>
+        <div class="order-item" draggable="true"><span class="order-handle">⠿</span><span class="order-num"></span><span class="order-text">$stmt->bind_param("ssd", $titel, $autor, $preis);</span></div>
+        <div class="order-item" draggable="true"><span class="order-handle">⠿</span><span class="order-num"></span><span class="order-text">$sql = "INSERT INTO buecher (titel, autor, preis) VALUES (?, ?, ?)";</span></div>
+        <div class="order-item" draggable="true"><span class="order-handle">⠿</span><span class="order-num"></span><span class="order-text">echo "Neue ID: " . $stmt->insert_id;</span></div>
+        <div class="order-item" draggable="true"><span class="order-handle">⠿</span><span class="order-num"></span><span class="order-text">$stmt = $db->prepare($sql);</span></div>
+        <div class="order-item" draggable="true"><span class="order-handle">⠿</span><span class="order-num"></span><span class="order-text">$db = new mysqli("localhost","root","pw","antiquariat");</span></div>
+        <div class="order-item" draggable="true"><span class="order-handle">⠿</span><span class="order-num"></span><span class="order-text">$stmt->execute();</span></div>
+      </div>
+      <div class="q-feedback fb-ok">✓ Richtig. Ablauf: 1. Verbindung (new mysqli) · 2. SQL-String definieren · 3. prepare() · 4. bind_param() · 5. execute() · 6. insert_id lesen.</div>
+      <div class="q-feedback fb-err">✗ Falsch. Korrekte Reihenfolge: new mysqli → SQL-String → prepare() → bind_param() → execute() → insert_id. Merke: Verbindung zuerst, dann prepare→bind→execute, dann Ergebnis lesen.</div>
+    </div>
+
+    <!-- E3 FILL 3pt -->
+    <div class="question" id="q_E3">
+      <div class="q-meta"><span class="q-id">E3</span><span class="q-type-badge">Lückentext</span><span class="q-pts-badge">3 Punkte</span></div>
+      <p class="q-text">Ergänze den Code, der alle Bücher eines bestimmten Autors aus der DB liest und ausgibt.</p>
+      <pre class="codeblock code-gap"><span class="ln">1</span><span class="vr">$sql</span>  = <span class="st">"SELECT titel, preis FROM buecher WHERE autor = ?"</span>;
+<span class="ln">2</span><span class="vr">$stmt</span> = <span class="vr">$db</span>-><span class="fn">prepare</span>(<span class="vr">$sql</span>);
+<span class="ln">3</span><span class="vr">$stmt</span>-><span class="fn">bind_param</span>(<span class="st">'</span><input type="text" id="E3a" placeholder="?" data-answer="s" style="width:40px"><span class="st">'</span>, <span class="vr">$autor</span>);
+<span class="ln">4</span><span class="vr">$stmt</span>-><span class="fn">execute</span>();
+<span class="ln">5</span><span class="vr">$result</span> = <span class="vr">$stmt</span>-><input type="text" id="E3b" placeholder="???" data-answer="get_result" style="width:130px">();
+<span class="ln">6</span><span class="kw">while</span> (<span class="vr">$row</span> = <span class="vr">$result</span>-><input type="text" id="E3c" placeholder="???" data-answer="fetch_assoc" style="width:130px">()) {
+<span class="ln">7</span>    <span class="kw">echo</span> <span class="vr">$row</span>[<span class="st">'titel'</span>];
+<span class="ln">8</span>}</pre>
+      <div class="q-feedback fb-ok">✓ Richtig. 's' für string (Autor-Name). get_result() holt das Ergebnis-Objekt. fetch_assoc() liest je eine Zeile als assoziatives Array.</div>
+      <div class="q-feedback fb-err">✗ Falsch. Lücke 1: <code>s</code> (string, da Autorenname Text ist). Lücke 2: <code>get_result</code> (holt das MySQLi_Result-Objekt). Lücke 3: <code>fetch_assoc</code> (liest Zeile als Array mit Spaltennamen als Schlüssel).</div>
+    </div>
+
+    <!-- E4 MC 2pt -->
+    <div class="question" id="q_E4">
+      <div class="q-meta"><span class="q-id">E4</span><span class="q-type-badge">Multiple Choice</span><span class="q-pts-badge">2 Punkte</span></div>
+      <p class="q-text">Du willst Bücher nach Titel, Erscheinungsjahr (Integer) und Preis (Kommazahl) einfügen und danach prüfen ob es geklappt hat. Welcher Code ist vollständig korrekt?</p>
+      <div class="mc-options" data-correct="b" data-q="E4" data-pts="2">
+        <div class="mc-opt" data-val="a"><span class="mc-letter">A</span><span class="mc-text"><code>bind_param('sii', $titel, $jahr, $preis)</code> + <code>$stmt->num_rows</code></span></div>
+        <div class="mc-opt" data-val="b"><span class="mc-letter">B</span><span class="mc-text"><code>bind_param('sid', $titel, $jahr, $preis)</code> + <code>$stmt->affected_rows > 0</code></span></div>
+        <div class="mc-opt" data-val="c"><span class="mc-letter">C</span><span class="mc-text"><code>bind_param('ssd', $titel, $jahr, $preis)</code> + <code>$stmt->insert_id</code></span></div>
+        <div class="mc-opt" data-val="d"><span class="mc-letter">D</span><span class="mc-text"><code>bind_param('sid', $titel, $jahr, $preis)</code> + <code>$stmt->num_rows > 0</code></span></div>
+      </div>
+      <div class="q-feedback fb-ok">✓ Richtig. 'sid' = string+integer+double. affected_rows gibt Anzahl betroffener Zeilen zurück (>0 = Erfolg). num_rows ist für SELECT (Anzahl gefundene Zeilen), nicht für INSERT.</div>
+      <div class="q-feedback fb-err">✗ Falsch. Richtig ist B: 'sid' (s=string/titel, i=integer/jahr, d=double/preis) und affected_rows (für INSERT/UPDATE/DELETE). num_rows ist für SELECT. insert_id gibt die neue ID, prüft aber nicht ob es geklappt hat.</div>
+    </div>
+
+    <!-- E5 MC 2pt -->
+    <div class="question" id="q_E5">
+      <div class="q-meta"><span class="q-id">E5</span><span class="q-type-badge">Multiple Choice</span><span class="q-pts-badge">2 Punkte</span></div>
+      <p class="q-text">Was ist der Unterschied zwischen <code>fetch_assoc()</code> und <code>fetch_object()</code>?</p>
+      <div class="mc-options" data-correct="c" data-q="E5" data-pts="2">
+        <div class="mc-opt" data-val="a"><span class="mc-letter">A</span><span class="mc-text"><code>fetch_assoc()</code> ist schneller, <code>fetch_object()</code> ist veraltet</span></div>
+        <div class="mc-opt" data-val="b"><span class="mc-letter">B</span><span class="mc-text">Kein Unterschied, beide geben dasselbe zurück</span></div>
+        <div class="mc-opt" data-val="c"><span class="mc-letter">C</span><span class="mc-text"><code>fetch_assoc()</code> gibt ein Array zurück (<code>$row['titel']</code>). <code>fetch_object()</code> gibt ein Objekt zurück (<code>$row->titel</code>)</span></div>
+        <div class="mc-opt" data-val="d"><span class="mc-letter">D</span><span class="mc-text"><code>fetch_assoc()</code> liest alle Zeilen auf einmal, <code>fetch_object()</code> liest Zeile für Zeile</span></div>
+      </div>
+      <div class="q-feedback fb-ok">✓ Richtig. fetch_assoc(): Zugriff mit $row['spaltenname']. fetch_object(): Zugriff mit $row->spaltenname. Beide lesen Zeile für Zeile in einer while-Schleife.</div>
+      <div class="q-feedback fb-err">✗ Falsch. Richtig ist C. fetch_assoc() → Array (Klammern: $row['titel']). fetch_object() → Objekt (Pfeil: $row->titel). Der Unterschied ist nur die Zugriffsart, nicht die Geschwindigkeit.</div>
+    </div>
+
+    <!-- ══ F: VALIDIERUNG ══ -->
+    <div class="section-header">
+      <span class="sh-num">Abschnitt F</span>
+      <span class="sh-title">Formularvalidierung &amp; Sicherheit</span>
+      <span class="sh-pts">6 Punkte</span>
+    </div>
+
+    <!-- F1 MC 2pt -->
+    <div class="question" id="q_F1">
+      <div class="q-meta"><span class="q-id">F1</span><span class="q-type-badge">Multiple Choice</span><span class="q-pts-badge">2 Punkte</span></div>
+      <p class="q-text">Ein Kunde gibt im Kommentarfeld ein: <code>&lt;script&gt;alert('XSS')&lt;/script&gt;</code>. Welche Funktion verhindert die Ausführung dieses Codes beim Anzeigen?</p>
+      <div class="mc-options" data-correct="a" data-q="F1" data-pts="2">
+        <div class="mc-opt" data-val="a"><span class="mc-letter">A</span><span class="mc-text"><code>htmlspecialchars($kommentar)</code> – wandelt <code>&lt; &gt;</code> in <code>&amp;lt; &amp;gt;</code> um, Browser führt es nicht aus</span></div>
+        <div class="mc-opt" data-val="b"><span class="mc-letter">B</span><span class="mc-text"><code>strip_tags($kommentar)</code> – entfernt alle HTML-Tags komplett</span></div>
+        <div class="mc-opt" data-val="c"><span class="mc-letter">C</span><span class="mc-text"><code>trim($kommentar)</code> – entfernt Leerzeichen am Rand</span></div>
+        <div class="mc-opt" data-val="d"><span class="mc-letter">D</span><span class="mc-text"><code>addslashes($kommentar)</code> – fügt Backslashes vor Sonderzeichen ein</span></div>
+      </div>
+      <div class="q-feedback fb-ok">✓ Richtig. htmlspecialchars() ist die korrekte Funktion zum Anzeigen von Benutzerdaten. Es wandelt &lt; in &amp;lt; um — der Browser zeigt es als Text an, führt es nicht als Code aus. strip_tags() wäre auch möglich, entfernt aber Tags komplett statt sie anzuzeigen.</div>
+      <div class="q-feedback fb-err">✗ Falsch. Richtig ist A. htmlspecialchars() konvertiert gefährliche Zeichen in HTML-Entities: &lt; → &amp;lt;, &gt; → &amp;gt;. Der Browser rendert das als Text, nicht als JavaScript. trim() und addslashes() schützen nicht vor XSS.</div>
+    </div>
+
+    <!-- F2 ORDER 2pt -->
+    <div class="question" id="q_F2">
+      <div class="q-meta"><span class="q-id">F2</span><span class="q-type-badge">Reihenfolge</span><span class="q-pts-badge">2 Punkte</span></div>
+      <p class="q-text">Bringe die Validierungsschritte beim Verarbeiten eines Kunden-Formulars in die empfohlene Reihenfolge.</p>
+      <div class="order-list" id="orderF2" data-q="F2" data-pts="2"
+        data-correct='["if (isset($_POST[\"submit\"])) {","$name = trim(htmlspecialchars($_POST[\"name\"]));","if (empty($name)) { $fehler[] = \"Name fehlt\"; }","if (strlen($name) > 45) { $fehler[] = \"Max. 45 Zeichen\"; }","if (empty($fehler)) { /* DB INSERT */ }"]'>
+        <div class="order-item" draggable="true"><span class="order-handle">⠿</span><span class="order-num"></span><span class="order-text">if (empty($name)) { $fehler[] = "Name fehlt"; }</span></div>
+        <div class="order-item" draggable="true"><span class="order-handle">⠿</span><span class="order-num"></span><span class="order-text">if (empty($fehler)) { /* DB INSERT */ }</span></div>
+        <div class="order-item" draggable="true"><span class="order-handle">⠿</span><span class="order-num"></span><span class="order-text">if (isset($_POST["submit"])) {</span></div>
+        <div class="order-item" draggable="true"><span class="order-handle">⠿</span><span class="order-num"></span><span class="order-text">if (strlen($name) > 45) { $fehler[] = "Max. 45 Zeichen"; }</span></div>
+        <div class="order-item" draggable="true"><span class="order-handle">⠿</span><span class="order-num"></span><span class="order-text">$name = trim(htmlspecialchars($_POST["name"]));</span></div>
+      </div>
+      <div class="q-feedback fb-ok">✓ Richtig. 1. Formular-Submit prüfen · 2. Eingabe bereinigen (trim+htmlspecialchars) · 3. Pflichtfeld prüfen (empty) · 4. Länge prüfen (strlen) · 5. Nur bei leerem $fehler-Array in DB schreiben.</div>
+      <div class="q-feedback fb-err">✗ Falsch. Reihenfolge: isset($_POST) → bereinigen (trim/htmlspecialchars) → empty-Check → strlen-Check → if(empty($fehler)) INSERT. Immer erst bereinigen, dann prüfen, dann in DB schreiben.</div>
+    </div>
+
+    <!-- F3 MC 2pt -->
+    <div class="question" id="q_F3">
+      <div class="q-meta"><span class="q-id">F3</span><span class="q-type-badge">Multiple Choice</span><span class="q-pts-badge">2 Punkte</span></div>
+      <p class="q-text">Was ist der Unterschied zwischen <strong>HTTP</strong> und <strong>HTTPS</strong> in Bezug auf Passwörter?</p>
+      <div class="mc-options" data-correct="b" data-q="F3" data-pts="2">
+        <div class="mc-opt" data-val="a"><span class="mc-letter">A</span><span class="mc-text">HTTPS ist schneller, weshalb es für Login-Formulare bevorzugt wird</span></div>
+        <div class="mc-opt" data-val="b"><span class="mc-letter">B</span><span class="mc-text">HTTP überträgt Daten unverschlüsselt — Passwörter sind im Netzwerk lesbar. HTTPS verschlüsselt mit TLS — Passwörter sind abhörsicher übertragen</span></div>
+        <div class="mc-opt" data-val="c"><span class="mc-letter">C</span><span class="mc-text">Bei HTTPS werden Passwörter automatisch gehasht, bei HTTP nicht</span></div>
+        <div class="mc-opt" data-val="d"><span class="mc-letter">D</span><span class="mc-text">Der Unterschied ist nur kosmetisch (grünes Schloss), technisch identisch</span></div>
+      </div>
+      <div class="q-feedback fb-ok">✓ Richtig. HTTP sendet alles im Klartext — im gleichen WLAN kann jeder mit Wireshark Passwörter mitlesen. HTTPS verschlüsselt die gesamte Kommunikation mit TLS. Passwörter niemals über HTTP!</div>
+      <div class="q-feedback fb-err">✗ Falsch. Richtig ist B. HTTP überträgt Passwörter im Klartext — in öffentlichen WLANs können sie abgefangen werden. HTTPS verschlüsselt die Verbindung. Das Hashing (password_hash) passiert serverseitig, unabhängig vom Protokoll.</div>
+    </div>
+
+    <!-- ══ G: FUNKTIONEN ══ -->
+    <div class="section-header">
+      <span class="sh-num">Abschnitt G</span>
+      <span class="sh-title">PHP-Funktionen &amp; Grundlagen</span>
+      <span class="sh-pts">6 Punkte</span>
+    </div>
+
+    <!-- G1 MC 2pt -->
+    <div class="question" id="q_G1">
+      <div class="q-meta"><span class="q-id">G1</span><span class="q-type-badge">Multiple Choice</span><span class="q-pts-badge">2 Punkte</span></div>
+      <p class="q-text">Was gibt dieser Code aus?</p>
+      <pre class="codeblock"><span class="vr">$kategorien</span> = <span class="st">"Fantasy,Krimi,Abenteuer,Sachbuch"</span>;
+<span class="vr">$arr</span> = <span class="fn">explode</span>(<span class="st">","</span>, <span class="vr">$kategorien</span>);
+<span class="kw">echo</span> <span class="fn">implode</span>(<span class="st">" | "</span>, <span class="vr">$arr</span>) . <span class="st">" ("</span> . <span class="fn">count</span>(<span class="vr">$arr</span>) . <span class="st">")"</span>;</pre>
+      <div class="mc-options" data-correct="c" data-q="G1" data-pts="2">
+        <div class="mc-opt" data-val="a"><span class="mc-letter">A</span><span class="mc-text"><code>Fantasy,Krimi,Abenteuer,Sachbuch (4)</code></span></div>
+        <div class="mc-opt" data-val="b"><span class="mc-letter">B</span><span class="mc-text"><code>Fantasy | Krimi | Abenteuer | Sachbuch (3)</code></span></div>
+        <div class="mc-opt" data-val="c"><span class="mc-letter">C</span><span class="mc-text"><code>Fantasy | Krimi | Abenteuer | Sachbuch (4)</code></span></div>
+        <div class="mc-opt" data-val="d"><span class="mc-letter">D</span><span class="mc-text"><code>["Fantasy","Krimi","Abenteuer","Sachbuch"] (4)</code></span></div>
+      </div>
+      <div class="q-feedback fb-ok">✓ Richtig. explode(",") teilt am Komma → 4-Element-Array. implode(" | ") fügt mit " | " zusammen. count() gibt 4 zurück (4 Elemente).</div>
+      <div class="q-feedback fb-err">✗ Falsch. Richtig ist C. explode(",","Fantasy,Krimi,Abenteuer,Sachbuch") → Array mit 4 Elementen. implode(" | ", $arr) → "Fantasy | Krimi | Abenteuer | Sachbuch". count($arr) → 4.</div>
+    </div>
+
+    <!-- G2 MC 2pt -->
+    <div class="question" id="q_G2">
+      <div class="q-meta"><span class="q-id">G2</span><span class="q-type-badge">Multiple Choice</span><span class="q-pts-badge">2 Punkte</span></div>
+      <p class="q-text">Welche Funktion wird verwendet, um zu prüfen ob ein Formularfeld <strong>existiert</strong>, und welche prüft ob es <strong>leer</strong> ist?</p>
+      <div class="mc-options" data-correct="d" data-q="G2" data-pts="2">
+        <div class="mc-opt" data-val="a"><span class="mc-letter">A</span><span class="mc-text"><code>exists()</code> prüft Existenz · <code>empty()</code> prüft Leerheit</span></div>
+        <div class="mc-opt" data-val="b"><span class="mc-letter">B</span><span class="mc-text"><code>isset()</code> prüft Existenz · <code>strlen() == 0</code> prüft Leerheit</span></div>
+        <div class="mc-opt" data-val="c"><span class="mc-letter">C</span><span class="mc-text"><code>defined()</code> prüft Existenz · <code>empty()</code> prüft Leerheit</span></div>
+        <div class="mc-opt" data-val="d"><span class="mc-letter">D</span><span class="mc-text"><code>isset()</code> prüft Existenz und nicht-null · <code>empty()</code> prüft auf leere Werte (leer string, 0, null, false, [])</span></div>
+      </div>
+      <div class="q-feedback fb-ok">✓ Richtig. isset(): true wenn Variable existiert UND nicht null ist. empty(): true wenn '', 0, '0', null, false, [] oder nicht gesetzt. Für Formularfelder: isset($_POST['feld']) && !empty($_POST['feld']).</div>
+      <div class="q-feedback fb-err">✗ Falsch. Richtig ist D. isset() prüft Existenz + nicht-null. empty() prüft auf alle "leeren" Werte: leerer String, 0, null, false, leeres Array. exists() und defined() sind für diesen Zweck falsch.</div>
+    </div>
+
+    <!-- G3 FILL 2pt -->
+    <div class="question" id="q_G3">
+      <div class="q-meta"><span class="q-id">G3</span><span class="q-type-badge">Lückentext</span><span class="q-pts-badge">2 Punkte</span></div>
+      <p class="q-text">Ergänze die Funktion, die einen Kurztitel für die Bücherliste erstellt. Wenn der Titel länger als 20 Zeichen ist, wird er abgeschnitten.</p>
+      <pre class="codeblock code-gap"><span class="kw">function</span> <span class="fn">kurztitel</span>(<span class="vr">$titel</span>, <span class="vr">$max</span> = <span class="nm">20</span>) {
+    <span class="kw">if</span> (<input type="text" id="G3a" placeholder="???" data-answer="strlen" style="width:100px">(<span class="vr">$titel</span>) > <span class="vr">$max</span>) {
+        <span class="kw">return</span> <input type="text" id="G3b" placeholder="???" data-answer="substr" style="width:90px">(<span class="vr">$titel</span>, <span class="nm">0</span>, <span class="vr">$max</span>) . <span class="st">'…'</span>;
+    }
+    <span class="kw">return</span> <span class="vr">$titel</span>;
+}
+<span class="kw">echo</span> <span class="fn">kurztitel</span>(<span class="st">'Der Herr der Ringe'</span>);</pre>
+      <div class="q-feedback fb-ok">✓ Richtig. strlen() misst die Länge des Strings. substr($titel, 0, $max) schneidet ab Position 0, Länge $max Zeichen aus. Funktionen in PHP sind nicht case-sensitiv — aber lowercase ist Standard.</div>
+      <div class="q-feedback fb-err">✗ Falsch. Lücke 1: <code>strlen</code> (misst String-Länge). Lücke 2: <code>substr</code> (schneidet Teilstring aus: substr(string, start, länge)). Merke: strlen für Messen, substr für Ausschneiden.</div>
+    </div>
+
+  </div><!-- /exam-body -->
+
+  <div class="submit-bar">
+    <div class="sb-progress">Beantwortet: <span id="answeredSpan">0</span> / 22</div>
+    <button class="btn-submit" id="submitBtn" disabled onclick="submitExam()">Abschlusstest abgeben</button>
+  </div>
+</div>
+
+<!-- ══════════ RESULT ══════════ -->
+<div id="resultPage">
+  <div class="result-cover">
+    <div class="result-stamp" id="stampEl">
+      <div class="stamp-grade" id="stampGrade">—</div>
+      <div class="stamp-label" id="stampLabel">—</div>
+    </div>
+    <div class="result-h1" id="resultH1">—</div>
+    <div class="result-sub" id="resultSub">—</div>
+    <table class="result-table" id="resultTable">
+      <thead><tr><th>Frage</th><th>Abschnitt</th><th>Thema</th><th>Punkte</th><th></th></tr></thead>
+      <tbody id="resultBody"></tbody>
+    </table>
+    <div class="grade-formula" id="gradeFormula"></div>
+    <button class="btn-retry2" onclick="location.reload()">↺ Nochmal versuchen</button>
+  </div>
+</div>
+
+<script>
+// ── META ─────────────────────────────────────────────────────────────────────
+const qMeta = {
+  A1:{pts:1,sec:'A',topic:'Kommentare'}, A2:{pts:2,sec:'A',topic:'PHP-Tags'},
+  A3:{pts:1,sec:'A',topic:'Grundstruktur'},
+  B1:{pts:2,sec:'B',topic:'GET vs POST'}, B2:{pts:2,sec:'B',topic:'PHP_SELF'},
+  B3:{pts:2,sec:'B',topic:'Formulare'},
+  C1:{pts:3,sec:'C',topic:'Login-Ablauf'}, C2:{pts:2,sec:'C',topic:'Hijacking'},
+  C3:{pts:3,sec:'C',topic:'Logout'}, C4:{pts:2,sec:'C',topic:'Session-Speicher'},
+  D1:{pts:2,sec:'D',topic:'Hashing'}, D2:{pts:2,sec:'D',topic:'password_verify'},
+  D3:{pts:2,sec:'D',topic:'Hash-Aufbau'},
+  E1:{pts:2,sec:'E',topic:'SQL-Injection'}, E2:{pts:3,sec:'E',topic:'INSERT-Ablauf'},
+  E3:{pts:3,sec:'E',topic:'SELECT'}, E4:{pts:2,sec:'E',topic:'bind_param'},
+  E5:{pts:2,sec:'E',topic:'fetch_assoc'},
+  F1:{pts:2,sec:'F',topic:'XSS'}, F2:{pts:2,sec:'F',topic:'Validierung'},
+  F3:{pts:2,sec:'F',topic:'HTTPS'},
+  G1:{pts:2,sec:'G',topic:'explode/implode'}, G2:{pts:2,sec:'G',topic:'isset/empty'},
+  G3:{pts:2,sec:'G',topic:'strlen/substr'}
+};
+const TOTAL_Q = 22;
+const TOTAL_PTS = 50;
+
+// ── TIMER ─────────────────────────────────────────────────────────────────────
+let timerInterval, secondsLeft = 60 * 60;
+function startTimer() {
+  timerInterval = setInterval(() => {
+    secondsLeft--;
+    const m = Math.floor(secondsLeft/60).toString().padStart(2,'0');
+    const s = (secondsLeft%60).toString().padStart(2,'0');
+    const el = document.getElementById('timerDisplay');
+    el.textContent = m+':'+s;
+    if (secondsLeft <= 600) el.className = 'eh-timer warn';
+    if (secondsLeft <= 120) el.className = 'eh-timer crit';
+    if (secondsLeft <= 0) { clearInterval(timerInterval); submitExam(); }
+  }, 1000);
+}
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+const answered = new Set();
+
+function markAnswered(q) {
+  answered.add(q);
+  const el = document.getElementById('q_'+q);
+  if (el) el.classList.add('answered');
+  updateUI();
+}
+function updateUI() {
+  const n = answered.size;
+  document.getElementById('answeredSpan').textContent = n;
+  document.getElementById('submitBtn').disabled = n < TOTAL_Q;
+  document.getElementById('progressInner').style.width = (n/TOTAL_Q*100)+'%';
+}
+
+// ── MC ────────────────────────────────────────────────────────────────────────
+document.querySelectorAll('.mc-options').forEach(opts => {
+  const q = opts.dataset.q;
+  opts.querySelectorAll('.mc-opt').forEach(opt => {
+    opt.addEventListener('click', () => {
+      if (opts.classList.contains('locked')) return;
+      opts.querySelectorAll('.mc-opt').forEach(o => o.classList.remove('chosen'));
+      opt.classList.add('chosen');
+      markAnswered(q);
+    });
+  });
+});
+
+// ── FILL ──────────────────────────────────────────────────────────────────────
+document.querySelectorAll('input[data-answer]').forEach(inp => {
+  inp.addEventListener('input', () => {
+    const q = inp.closest('.question').id.replace('q_','');
+    const allInputs = inp.closest('.question').querySelectorAll('input[data-answer]');
+    const allFilled = Array.from(allInputs).every(i => i.value.trim() !== '');
+    if (allFilled) markAnswered(q);
+    else { answered.delete(q); inp.closest('.question').classList.remove('answered'); updateUI(); }
+  });
+});
+
+// ── DRAG ──────────────────────────────────────────────────────────────────────
+function initDrag() {
+  document.querySelectorAll('.order-list').forEach(list => {
+    let dragged = null;
+    const q = list.dataset.q;
+    list.querySelectorAll('.order-item').forEach(item => {
+      item.addEventListener('dragstart', () => { dragged=item; item.classList.add('dragging'); });
+      item.addEventListener('dragend',   () => { item.classList.remove('dragging'); updateNums(list); });
+      item.addEventListener('dragover',  e => { e.preventDefault(); item.classList.add('dragover'); });
+      item.addEventListener('dragleave', () => item.classList.remove('dragover'));
+      item.addEventListener('drop', e => {
+        e.preventDefault(); item.classList.remove('dragover');
+        if (dragged!==item) {
+          const items=[...list.querySelectorAll('.order-item')];
+          items.indexOf(dragged)<items.indexOf(item)?item.after(dragged):item.before(dragged);
+        }
+        updateNums(list); markAnswered(q);
+      });
+    });
+    updateNums(list);
+  });
+}
+function updateNums(list) {
+  list.querySelectorAll('.order-item').forEach((item,i) => item.querySelector('.order-num').textContent=(i+1)+'.');
+}
+
+// ── START ─────────────────────────────────────────────────────────────────────
+function startExam() {
+  document.getElementById('coverPage').style.display='none';
+  document.getElementById('examPage').style.display='block';
+  startTimer(); initDrag(); updateUI();
+}
+
+// ── SUBMIT ────────────────────────────────────────────────────────────────────
+function submitExam() {
+  clearInterval(timerInterval);
+  let totalEarned=0;
+  const rows=[];
+
+  // MC
+  document.querySelectorAll('.mc-options[data-q]').forEach(opts => {
+    const q=opts.dataset.q, pts=parseInt(opts.dataset.pts), correct=opts.dataset.correct;
+    const chosen=opts.querySelector('.mc-opt.chosen');
+    const val=chosen?chosen.dataset.val:null;
+    const earned=val===correct?pts:0;
+    totalEarned+=earned;
+    opts.classList.add('locked');
+    opts.querySelectorAll('.mc-opt').forEach(o => {
+      o.classList.add('locked');
+      if(o.dataset.val===correct) o.classList.add('show-correct');
+      if(o.dataset.val===val&&val!==correct) o.classList.add('show-wrong');
+    });
+    const qEl=document.getElementById('q_'+q);
+    const fbs=qEl.querySelectorAll('.q-feedback');
+    if(earned===pts){fbs[0].classList.add('show');qEl.classList.add('revealed','all-correct');}
+    else{fbs[1].classList.add('show');qEl.classList.add('revealed','has-wrong');}
+    rows.push({q,sec:qMeta[q].sec,topic:qMeta[q].topic,earned,pts});
+  });
+
+  // FILL
+  const fillGroups={};
+  document.querySelectorAll('input[data-answer]').forEach(inp => {
+    const q=inp.closest('.question').id.replace('q_','');
+    if(!fillGroups[q])fillGroups[q]=[];
+    fillGroups[q].push(inp);
+  });
+  Object.entries(fillGroups).forEach(([q,inputs]) => {
+    const pts=qMeta[q]?.pts||1;
+    let correct=0;
+    inputs.forEach(inp => {
+      const ok=inp.value.trim().toLowerCase()===inp.dataset.answer.toLowerCase();
+      inp.classList.add(ok?'correct-fill':'wrong-fill');
+      inp.disabled=true;
+      if(ok)correct++;
+    });
+    const earned=correct===inputs.length?pts:correct>0?Math.floor(pts/2):0;
+    totalEarned+=earned;
+    const qEl=document.getElementById('q_'+q);
+    const fbs=qEl.querySelectorAll('.q-feedback');
+    if(earned===pts){fbs[0].classList.add('show');qEl.classList.add('revealed','all-correct');}
+    else{fbs[1].classList.add('show');qEl.classList.add('revealed','has-wrong');}
+    rows.push({q,sec:qMeta[q].sec,topic:qMeta[q].topic,earned,pts});
+  });
+
+  // ORDER
+  document.querySelectorAll('.order-list[data-correct]').forEach(list => {
+    const q=list.dataset.q, pts=parseInt(list.dataset.pts);
+    const correct=JSON.parse(list.dataset.correct);
+    const actual=[...list.querySelectorAll('.order-text')].map(el=>el.textContent.trim());
+    let matched=0;
+    actual.forEach((txt,i)=>{
+      const item=list.querySelectorAll('.order-item')[i];
+      const ok=txt===correct[i];
+      item.classList.add(ok?'order-correct':'order-wrong');
+      if(ok)matched++;
+    });
+    const earned=matched===correct.length?pts:matched>=Math.ceil(correct.length/2)?Math.floor(pts/2):0;
+    totalEarned+=earned;
+    const qEl=document.getElementById('q_'+q);
+    const fbs=qEl.querySelectorAll('.q-feedback');
+    if(earned===pts){fbs[0].classList.add('show');qEl.classList.add('revealed','all-correct');}
+    else{fbs[1].classList.add('show');qEl.classList.add('revealed','has-wrong');}
+    list.querySelectorAll('.order-item').forEach(i=>i.draggable=false);
+    rows.push({q,sec:qMeta[q].sec,topic:qMeta[q].topic,earned,pts});
+  });
+
+  document.getElementById('ehPts').textContent=totalEarned+' / '+TOTAL_PTS+' Pkt.';
+  document.getElementById('submitBtn').disabled=true;
+  document.getElementById('submitBtn').textContent='Abgegeben';
+
+  setTimeout(()=>{
+    const pct=totalEarned/TOTAL_PTS;
+    const note=(pct*5+1).toFixed(1);
+    const pass=pct>=0.6;
+    document.getElementById('examPage').style.display='none';
+    document.getElementById('resultPage').style.display='block';
+    const stamp=document.getElementById('stampEl');
+    stamp.className='result-stamp '+(pass?'pass':'fail');
+    document.getElementById('stampGrade').className='stamp-grade '+(pass?'pass':'fail');
+    document.getElementById('stampGrade').textContent=note;
+    document.getElementById('stampLabel').className='stamp-label '+(pass?'pass':'fail');
+    document.getElementById('stampLabel').textContent=pass?'BESTANDEN':'NICHT BEST.';
+    document.getElementById('resultH1').textContent=pass?'Bestanden':'Nicht bestanden';
+    document.getElementById('resultSub').textContent=
+      totalEarned+' von '+TOTAL_PTS+' Punkten ('+Math.round(pct*100)+'%)';
+    document.getElementById('gradeFormula').textContent=
+      'Notenformel: ('+totalEarned+' / '+TOTAL_PTS+') × 5 + 1 = '+note;
+    rows.sort((a,b)=>a.q.localeCompare(b.q));
+    const tbody=document.getElementById('resultBody');
+    rows.forEach(r=>{
+      const tr=document.createElement('tr');
+      const cls=r.earned===r.pts?'res-ok':r.earned>0?'res-part':'res-err';
+      const sym=r.earned===r.pts?'✓':r.earned>0?'½':'✗';
+      tr.innerHTML=`<td>${r.q}</td><td>${r.sec}</td><td>${r.topic}</td><td>${r.earned} / ${r.pts}</td><td class="${cls}">${sym}</td>`;
+      tbody.appendChild(tr);
+    });
+  },600);
+}
+</script>
+</body>
+</html>
